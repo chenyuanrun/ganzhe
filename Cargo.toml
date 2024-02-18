@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 
 [workspace]
-members = ["ganzhe-actor", "ganzhe-rt"]
+members = ["ganzhe-actor", "ganzhe-nbd", "ganzhe-rt"]

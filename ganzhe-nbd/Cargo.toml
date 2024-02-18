@@ -1,0 +1,15 @@
+[package]
+name = "ganzhe-nbd"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bytes = { version = "1.5", features = ["serde"] }
+thiserror = "1.0"
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+tokio = { version = "1.36", features = ["full"] }
+ganzhe-rt = { path = "../ganzhe-rt" }
+ganzhe-actor = { path = "../ganzhe-actor" }
