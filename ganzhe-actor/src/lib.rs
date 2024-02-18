@@ -144,7 +144,7 @@ impl<A: Actor> ActorSpawner<A> {
         let addr = self.addr();
         let context = Context {
             actor: Rc::new(RefCell::new(actor)),
-            channel_tx: self.channel.0.clone(),
+            channel_tx: Rc::new(self.channel.0.clone()),
             stat: Rc::new(ganzhe_rt::sync::Stat::new(ActorStat::Creating)),
         };
         ganzhe_rt::spawn_local(async move {
@@ -163,7 +163,7 @@ pub enum ActorStat {
 
 pub struct Context<A: Actor> {
     actor: Rc<RefCell<A>>,
-    channel_tx: ChannelTx<A>,
+    channel_tx: Rc<ChannelTx<A>>,
     stat: Rc<Stat<ActorStat>>,
 }
 
@@ -180,7 +180,7 @@ impl<A: Actor> Clone for Context<A> {
 impl<A: Actor> Context<A> {
     pub fn addr(&self) -> Addr<A> {
         Addr {
-            channel_tx: self.channel_tx.clone(),
+            channel_tx: (*self.channel_tx).clone(),
         }
     }
 
