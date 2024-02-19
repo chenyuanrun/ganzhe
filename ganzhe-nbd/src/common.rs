@@ -8,11 +8,11 @@ macro_rules! define_endian_impl {
             pub struct [< $endian:camel $base:camel >]($base);
 
             impl [< $endian:camel $base:camel >] {
-                pub fn new(value: $base) -> Self {
-                    value.into()
+                pub const fn new(value: $base) -> Self {
+                    Self($base::[< to_ $endian >](value))
                 }
 
-                pub fn inner(&self) -> &$base {
+                pub const fn inner(&self) -> &$base {
                     &self.0
                 }
 
