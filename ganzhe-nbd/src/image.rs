@@ -1,30 +1,26 @@
 #![allow(dead_code)]
 
-use std::{
-    cell::{Ref, RefCell},
-    rc::Rc,
-};
+use std::{cell::RefCell, rc::Rc};
 
 use async_trait::async_trait;
 
 type IoResult<T> = std::io::Result<T>;
 
+// The implementation of Image should be cancellation-safe: if the future is
+// dropped, the passed-in buf should not be held anymore.
 #[async_trait(?Send)]
-pub trait Image {
+pub trait Image: 'static {
     fn stat(&self) -> ImageStat;
     async fn read(&self, offset: usize, buf: &mut [u8]) -> IoResult<usize>;
     async fn write(&self, offset: usize, buf: &[u8]) -> IoResult<usize>;
     async fn write_zero(&self, offset: usize, length: usize) -> IoResult<usize>;
     async fn flush(&self) -> IoResult<()>;
     async fn trim(&self, offset: usize, length: usize) -> IoResult<()>;
-    fn dup(&self) -> Box<dyn Image>;
 }
 
 pub struct ImageStat {
     size: usize,
 }
-
-pub trait ImageProvider {}
 
 #[derive(Clone)]
 pub struct MemImage {
@@ -109,8 +105,46 @@ impl Image for MemImage {
         self.write_zero(offset, length).await?;
         Ok(())
     }
+}
 
-    fn dup(&self) -> Box<dyn Image> {
-        Box::new(self.clone())
+pub struct DropGuard<F>
+where
+    F: FnOnce(),
+{
+    guard: Option<F>,
+}
+
+impl<F> DropGuard<F>
+where
+    F: FnOnce(),
+{
+    pub fn new(f: F) -> Self {
+        Self { guard: Some(f) }
     }
+
+    pub fn disarm(mut self) {
+        self.guard.take();
+    }
+}
+
+impl<F> Drop for DropGuard<F>
+where
+    F: FnOnce(),
+{
+    fn drop(&mut self) {
+        if let Some(guard) = self.guard.take() {
+            guard()
+        }
+    }
+}
+
+#[async_trait]
+pub trait ImageOpener: Send + 'static {
+    async fn open(self: Box<Self>) -> Rc<dyn Image>;
+}
+
+#[async_trait]
+pub trait ImageProvider: Send + 'static {
+    fn name(&self) -> &'static str;
+    async fn open_image<'a>(&self, desc: &'a str) -> IoResult<Box<dyn ImageOpener>>;
 }
