@@ -10,6 +10,14 @@ tokio = { version = "1.36", features = ["full"] }
 thiserror = "1.0"
 rand = "0.8"
 anyhow = "1.0"
+bytes = { version = "1", features = ["serde"] }
+smallvec = { version = "1.13", features = [
+    "serde",
+    "write",
+    "union",
+    "const_generics",
+    "const_new",
+] }
 
 [dev-dependencies]
 clap = { version = "4.5", features = ["derive"] }

@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+pub mod io;
 pub mod sync;
 
 use std::{
